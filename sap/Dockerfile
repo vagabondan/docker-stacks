@@ -9,7 +9,8 @@ USER root
 RUN apt-get update -y && \
     apt-get install -y cmake && \
     apt-get install -y make && \
-    apt-get -y install libboost-all-dev
+    apt-get -y install libboost-all-dev && \
+    apt-get -y install build-essential
 
 RUN cd /home/$NB_USER && \
     fix-permissions $CONDA_DIR && \
@@ -33,21 +34,42 @@ RUN pip install --upgrade pip && \
     Treeinterpreter \
     LIME \
     ELI5 \
-    pyhdb \
     protobuf \
     tqdm \
-    wheel
+    wheel \
+    Cython \
+    numpy \
+    pandas \
+    python-dateutil \
+    pytz \
+    scikit-learn \
+    scipy \
+    setuptools \
+    six \
+    sklearn \
+    tffm \
+    tqdm
 
 RUN conda install gxx_linux-64 && \
     pip install keras
 #    pip install -U --no-deps --force-reinstall --install-option="--rl=True" skater==1.1.1b2
 
+RUN pip install git+https://github.com/hlin117/mdlp-discretization
+
 RUN git clone --branch=stable https://github.com/bigartm/bigartm.git && \
     cd bigartm && \
     mkdir build && cd build && \
     cmake .. && \
-    make -j4 && \
-    cd /home/$NB_USER && \
+    make -j4
+
+USER root
+
+RUN cd /home/${NB_USER}/bigartm/build && \
+    make install
+
+ENV ARTM_SHARED_LIBRARY /usr/local/lib/libartm.so    
+
+RUN cd /home/$NB_USER && \
     git clone https://github.com/sato9hara/defragTrees.git
 
 RUN git clone https://github.com/SAP/PyHDB.git && \
@@ -55,6 +77,9 @@ RUN git clone https://github.com/SAP/PyHDB.git && \
     python setup.py install && \
     cd ..
 
+RUN chown -R ${NB_USER}:${NB_GID} /home/$NB_USER/
+
+USER $NB_UID
 
 # RUN ln -s BayesianOptimization BayesianOptimization-master && \
 #    git clone https://github.com/IBCNServices/GENESIM.git && \
