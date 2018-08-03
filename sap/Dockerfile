@@ -6,6 +6,19 @@ LABEL maintainer="Vagabondan <strannix.vagabondan@gmail.com>"
 
 USER root
 
+RUN apt-get update -y && \
+    apt-get install -y cmake && \
+    apt-get install -y make && \
+    apt-get -y install libboost-all-dev
+
+RUN cd /home/$NB_USER && \
+    fix-permissions $CONDA_DIR && \
+    fix-permissions /home/$NB_USER && \
+    fix-permissions /home/$NB_USER/.cache
+
+USER $NB_UID
+
+
 # Install Tensorflow
 RUN pip install --upgrade pip && \
     pip install \
@@ -25,20 +38,8 @@ RUN pip install --upgrade pip && \
     tqdm \
     wheel
 
-RUN apt-get update -y && \
-    apt-get install -y cmake && \
-    apt-get install -y make && \
-    apt-get -y install libboost-all-dev
-
-RUN cd /home/$NB_USER && \
-    fix-permissions $CONDA_DIR && \
-    fix-permissions /home/$NB_USER && \
-    fix-permissions /home/$NB_USER/.cache
-
-USER $NB_UID
-
 RUN conda install gxx_linux-64 && \
-    pip install keras 
+    pip install keras
 #    pip install -U --no-deps --force-reinstall --install-option="--rl=True" skater==1.1.1b2
 
 RUN git clone --branch=stable https://github.com/bigartm/bigartm.git && \
